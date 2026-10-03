@@ -185,15 +185,10 @@ const registerUser = asyncHandler(async (req, res) => {
         );
 });
 
-const loginUser = asyncHandler(async (req, res) => {
-    const { email, username, identifier, password } = req.body;
-
-    const rawCredential = identifier || email || username || "";
-    const credential = rawCredential.trim().replace(/^@+/, "").toLowerCase();
-
-    if (!credential || !password) {
-        throw new ApiError(400, "Email/Username and password are required");
-    }
+// Helper to find user by email or username (exact, regex, and phonetic fallbacks)
+const findUserByCredential = async (rawCredential) => {
+    const credential = (rawCredential || "").trim().replace(/^@+/, "").toLowerCase();
+    if (!credential) return null;
 
     // 1. Direct match (fast indexed search)
     let user = await User.findOne({
@@ -227,6 +222,18 @@ const loginUser = asyncHandler(async (req, res) => {
         });
     }
 
+    return user;
+};
+
+const loginUser = asyncHandler(async (req, res) => {
+    const { email, username, identifier, password } = req.body;
+    const rawCredential = identifier || email || username || "";
+
+    if (!rawCredential.trim() || !password) {
+        throw new ApiError(400, "Email/Username and password are required");
+    }
+
+    const user = await findUserByCredential(rawCredential);
     if (!user) {
         throw new ApiError(401, "Invalid credentials");
     }
@@ -462,5 +469,100 @@ const getSuggestedUsers = asyncHandler(async (req, res) => {
     );
 });
 
-export {generateAccessAndRefreshTokens,registerUser,loginUser,logoutUser,refreshAccessToken
-    ,getCurrentUser,updateAccountDetails,updateUserAvatar,updateUserCoverImage,changeCurrentPassword,getSuggestedUsers}
+// =====================================================
+// FORGOT & RESET PASSWORD
+// =====================================================
+
+const forgotPassword = asyncHandler(async (req, res) => {
+    const { email, username, identifier } = req.body;
+    const rawCredential = identifier || email || username || "";
+
+    if (!rawCredential.trim()) {
+        throw new ApiError(400, "Please enter your email or username");
+    }
+
+    const user = await findUserByCredential(rawCredential);
+    if (!user) {
+        throw new ApiError(404, "No account found with this email or username");
+    }
+
+    // Generate 6-digit OTP valid for 15 minutes
+    const resetOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 15 * 60 * 1000);
+
+    user.resetPasswordOTP = resetOTP;
+    user.resetPasswordExpiry = expiry;
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                email: user.email,
+                username: user.username,
+                resetCode: resetOTP,
+            },
+            `Reset code generated successfully! Use code ${resetOTP} to set a new password.`
+        )
+    );
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+    const { email, username, identifier, otp, newPassword } = req.body;
+    const rawCredential = identifier || email || username || "";
+
+    if (!rawCredential.trim()) {
+        throw new ApiError(400, "Please enter your email or username");
+    }
+
+    if (!otp?.trim()) {
+        throw new ApiError(400, "Please enter the 6-digit reset code");
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+        throw new ApiError(400, "New password must be at least 6 characters long");
+    }
+
+    const user = await findUserByCredential(rawCredential);
+    if (!user) {
+        throw new ApiError(404, "No account found with this email or username");
+    }
+
+    if (!user.resetPasswordOTP || user.resetPasswordOTP !== otp.trim()) {
+        throw new ApiError(400, "Invalid reset code. Please check and try again.");
+    }
+
+    if (!user.resetPasswordExpiry || user.resetPasswordExpiry < new Date()) {
+        throw new ApiError(400, "Reset code has expired. Please request a new one.");
+    }
+
+    // Update password (hashed automatically via userSchema.pre("save"))
+    user.password = newPassword;
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordExpiry = undefined;
+    await user.save();
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {},
+            "Password has been reset successfully! You can now log in with your new password."
+        )
+    );
+});
+
+export {
+    generateAccessAndRefreshTokens,
+    registerUser,
+    loginUser,
+    logoutUser,
+    refreshAccessToken,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverImage,
+    changeCurrentPassword,
+    getSuggestedUsers,
+    forgotPassword,
+    resetPassword
+};

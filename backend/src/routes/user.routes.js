@@ -12,7 +12,9 @@ import {
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage,
-    getSuggestedUsers
+    getSuggestedUsers,
+    forgotPassword,
+    resetPassword
 } from "../controllers/user.controller.js";
 
 const router = Router();
@@ -35,6 +37,10 @@ router.route("/register").post(
 router.route("/login").post(loginUser);
 
 router.route("/refresh-token").post(refreshAccessToken);
+
+router.route("/forgot-password").post(forgotPassword);
+
+router.route("/reset-password").post(resetPassword);
 
 // Protected Routes
 router.use(verifyJWT);

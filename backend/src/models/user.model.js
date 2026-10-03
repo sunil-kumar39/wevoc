@@ -55,6 +55,14 @@ const userSchema = new Schema(
 
         refreshToken: {
             type: String
+        },
+
+        resetPasswordOTP: {
+            type: String
+        },
+
+        resetPasswordExpiry: {
+            type: Date
         }
     },
     {

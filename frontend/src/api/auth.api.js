@@ -109,3 +109,35 @@ export const updateUserCoverImage = async (coverImage) => {
         body: formData,
     });
 };
+
+export const forgotPassword = async ({ identifier, email, username }) => {
+    const cred = (identifier || email || username || "").trim();
+    return apiClient("/users/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({
+            identifier: cred,
+            email: cred,
+            username: cred,
+        }),
+    });
+};
+
+export const resetPassword = async ({
+    identifier,
+    email,
+    username,
+    otp,
+    newPassword,
+}) => {
+    const cred = (identifier || email || username || "").trim();
+    return apiClient("/users/reset-password", {
+        method: "POST",
+        body: JSON.stringify({
+            identifier: cred,
+            email: cred,
+            username: cred,
+            otp: (otp || "").trim(),
+            newPassword,
+        }),
+    });
+};
