@@ -22,9 +22,10 @@ export const socket =
         getSocketUrl(),
         {
             withCredentials: true,
-
             autoConnect: false,
-
+            auth: {
+                token: typeof window !== "undefined" ? localStorage.getItem("accessToken") : null,
+            },
             transports: [
                 "websocket",
                 "polling",
@@ -39,7 +40,10 @@ export const socket =
 
 export const connectSocket =
     () => {
-
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+        if (token) {
+            socket.auth = { token };
+        }
         if (!socket.connected) {
             socket.connect();
         }

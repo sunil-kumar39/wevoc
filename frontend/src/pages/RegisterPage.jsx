@@ -42,26 +42,26 @@ export default function RegisterPage({ onLogin }) {
             return;
         }
 
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters");
+            return;
+        }
 
         try {
-
             setLoading(true);
 
-
             await register({
-                fullname,
-                email,
-                username,
+                fullname: fullname.trim(),
+                email: email.trim(),
+                username: username.trim().replace(/^@+/, ""),
                 password,
                 avatar,
                 coverImage,
             });
 
-
             setSuccess(
-                "Account created successfully. Please login."
+                "Account created successfully!"
             );
-
 
             // Clear form
             setFullname("");
@@ -192,7 +192,7 @@ export default function RegisterPage({ onLogin }) {
 
                         <input
                             type="text"
-                            placeholder="@username"
+                            placeholder="Choose a username (e.g. alex99)"
                             value={username}
                             onChange={(e) =>
                                 setUsername(

@@ -10,9 +10,9 @@ export const registerUser = async ({
 }) => {
     const formData = new FormData();
 
-    formData.append("fullname", fullname);
-    formData.append("email", email);
-    formData.append("username", username);
+    formData.append("fullname", (fullname || "").trim());
+    formData.append("email", (email || "").trim().toLowerCase());
+    formData.append("username", (username || "").trim().replace(/^@+/, "").toLowerCase());
     formData.append("password", password);
 
     if (avatar) {
@@ -29,12 +29,14 @@ export const registerUser = async ({
     });
 };
 
-export const loginUser = async ({ email, username, password }) => {
+export const loginUser = async ({ identifier, email, username, password }) => {
+    const loginCredential = (identifier || email || username || "").trim();
     return apiClient("/users/login", {
         method: "POST",
         body: JSON.stringify({
-            email,
-            username,
+            identifier: loginCredential,
+            email: loginCredential,
+            username: loginCredential,
             password,
         }),
     });

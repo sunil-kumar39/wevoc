@@ -7,143 +7,82 @@ export default function LoginPage({ onRegister }) {
     const { login } = useApp();
 
 
-    const [email, setEmail] =
-        useState("");
-
-    const [password, setPassword] =
-        useState("");
-
-
-    const [showPassword, setShowPassword] =
-        useState(false);
-
-
-    const [loading, setLoading] =
-        useState(false);
-
-    const [error, setError] =
-        useState("");
-
+    const [identifier, setIdentifier] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const handleSubmit = async (e) => {
-
         e.preventDefault();
-
         setError("");
 
-
-        if (!email || !password) {
-
-            setError(
-                "Email and password are required"
-            );
-
+        if (!identifier.trim() || !password) {
+            setError("Email/Username and password are required");
             return;
         }
 
-
         try {
-
             setLoading(true);
-
-
             await login({
-                email,
+                identifier: identifier.trim(),
                 password
             });
-
-
         } catch (error) {
-
             setError(
                 error.message ||
                 "Login failed"
             );
-
-
         } finally {
-
             setLoading(false);
-
         }
-
     };
 
-
     return (
-
         <div className="auth-page">
-
             <div className="auth-card">
-
-
                 {/* Logo */}
-
                 <div className="auth-logo">
-
                     <div className="auth-logo-icon">
                         🎙
                     </div>
-
                     <div className="auth-logo-wordmark">
                         We<span>Voc</span>
                     </div>
-
                 </div>
 
-
                 {/* Header */}
-
                 <div className="auth-header">
-
                     <h1>
                         Welcome back
                     </h1>
-
                     <p>
                         Login to your WeVoc account
                     </p>
-
                 </div>
 
-
                 {/* Login Form */}
-
                 <form onSubmit={handleSubmit}>
-
-
                     {/* Error */}
-
                     {error && (
-
                         <div className="auth-error">
                             {error}
                         </div>
-
                     )}
 
-
-                    {/* Email */}
-
+                    {/* Email or Username */}
                     <div className="form-group">
-
-                        <label htmlFor="email">
-                            Email
+                        <label htmlFor="identifier">
+                            Email or Username
                         </label>
-
                         <input
-                            id="email"
-                            type="email"
-                            placeholder="Enter your email"
-                            value={email}
-                            onChange={(e) =>
-                                setEmail(
-                                    e.target.value
-                                )
-                            }
-                            autoComplete="email"
+                            id="identifier"
+                            type="text"
+                            placeholder="Enter your email or @username"
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
+                            autoComplete="username"
                         />
-
                     </div>
 
 

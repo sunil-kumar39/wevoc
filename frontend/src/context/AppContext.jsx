@@ -47,12 +47,10 @@ export function AppProvider({ children }) {
         const checkCurrentUser = async () => {
             try {
                 const response = await getCurrentUser();
-
                 setUser(response.data);
-
             } catch (error) {
+                localStorage.removeItem("accessToken");
                 setUser(null);
-
             } finally {
                 setAuthLoading(false);
             }
@@ -66,15 +64,21 @@ export function AppProvider({ children }) {
     // Login
     // -------------------------
 
-    const login = async ({ email, username, password }) => {
-
+    const login = async ({ identifier, email, username, password }) => {
         const response = await loginUser({
-            email,
-            username,
+            identifier: identifier || email || username,
+            email: identifier || email || username,
+            username: identifier || email || username,
             password,
         });
 
-        setUser(response.data.user);
+        if (response?.data?.accessToken) {
+            localStorage.setItem("accessToken", response.data.accessToken);
+        }
+
+        if (response?.data?.user) {
+            setUser(response.data.user);
+        }
 
         return response;
     };
@@ -92,7 +96,6 @@ export function AppProvider({ children }) {
         avatar,
         coverImage,
     }) => {
-
         const response = await registerUser({
             fullname,
             email,
@@ -101,6 +104,14 @@ export function AppProvider({ children }) {
             avatar,
             coverImage,
         });
+
+        if (response?.data?.accessToken) {
+            localStorage.setItem("accessToken", response.data.accessToken);
+        }
+
+        if (response?.data?.user) {
+            setUser(response.data.user);
+        }
 
         return response;
     };
@@ -111,11 +122,12 @@ export function AppProvider({ children }) {
     // -------------------------
 
     const logout = async () => {
-
         try {
             await logoutUser();
-
+        } catch (err) {
+            console.error("Logout error:", err);
         } finally {
+            localStorage.removeItem("accessToken");
             setUser(null);
             setPage("feed");
             setPageData(null);
