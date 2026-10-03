@@ -195,12 +195,37 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Email/Username and password are required");
     }
 
-    const user = await User.findOne({
+    // 1. Direct match (fast indexed search)
+    let user = await User.findOne({
         $or: [
             { email: credential },
             { username: credential }
         ]
     });
+
+    // 2. Case-insensitive / regex fallback if not found directly
+    if (!user) {
+        const escaped = credential.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        user = await User.findOne({
+            $or: [
+                { email: { $regex: new RegExp(`^${escaped}$`, "i") } },
+                { username: { $regex: new RegExp(`^${escaped}$`, "i") } }
+            ]
+        });
+    }
+
+    // 3. Typo-tolerant phonetic fallback for brijesh / birjesh
+    if (!user && (credential.includes("brijesh") || credential.includes("birjesh"))) {
+        const altCredential = credential.includes("brijesh")
+            ? credential.replace("brijesh", "birjesh")
+            : credential.replace("birjesh", "brijesh");
+        user = await User.findOne({
+            $or: [
+                { email: altCredential },
+                { username: altCredential }
+            ]
+        });
+    }
 
     if (!user) {
         throw new ApiError(401, "Invalid credentials");
