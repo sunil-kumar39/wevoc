@@ -1,30 +1,18 @@
 {
-  "name": "wevoc-backened",
+  "name": "wevoc-project",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Wevoc Project - Full Stack Audio Social Platform (Backend & Frontend)",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/index.js",
-    "start": "node src/index.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "cloudinary": "^2.10.0",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.7.4",
-    "multer": "^2.2.0",
-    "socket.io": "^4.8.3"
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,magenta\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "start:backend": "npm run start --prefix backend",
+    "build": "npm run build --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "concurrently": "^9.1.2"
   }
 }

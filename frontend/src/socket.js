@@ -7,22 +7,14 @@ import {
 // SOCKET URL
 // =====================================================
 
-const getSocketUrl =
-    () => {
+const getSocketUrl = () => {
+    const apiUrl =
+        import.meta.env.VITE_API_BASE_URL ||
+        import.meta.env.VITE_API_URL ||
+        "http://localhost:8000";
 
-        const apiUrl =
-            import.meta.env
-                .VITE_API_BASE_URL;
-
-        if (!apiUrl) {
-            return "http://localhost:8000";
-        }
-
-        return apiUrl.replace(
-            /\/api\/v1\/?$/,
-            ""
-        );
-    };
+    return apiUrl.replace(/\/api\/v1\/?$/, "");
+};
 
 
 export const socket =
